@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# shellcheck source=/dev/null
+source /opt/tunnelforge/core/common.sh
+# shellcheck source=/dev/null
+source /opt/tunnelforge/core/controller.sh
+
+cmd="${1:-menu}"
+shift || true
+
+case "$cmd" in
+  init) tf_init ;;
+  config) tf_config ;;
+  drivers) tf_drivers ;;
+  up) tf_up "${1:-}" "${2:-}" ;;
+  down) tf_down ;;
+  status) tf_status ;;
+  test) tf_test ;;
+  verify) tf_verify "${1:-}" ;;
+  history) cat "$HISTORY" 2>/dev/null || true ;;
+  version|--version|-v) tf_version ;;
+  menu) tf_menu ;;
+  help|--help|-h)
+    cat <<'EOF_HELP'
+Usage: tunnelforge COMMAND [ARGS]
+
+Commands:
+  init                     Configure endpoint IPs and ports
+  config                   Show active configuration
+  drivers                  List available tunnel drivers
+  up DRIVER iran|foreign   Deploy a driver for one node role
+  down                     Remove the active TunnelForge deployment
+  status                   Show state and driver health
+  test                     Run a local TCP acceptance probe
+  verify yes|no            Record real client verification result
+  history                  Show deployment/verification history
+  version                  Show version
+  help                     Show this help
+EOF_HELP
+    ;;
+  *) echo "Unknown command: $cmd" >&2; echo "Run: tunnelforge help" >&2; exit 2 ;;
+esac

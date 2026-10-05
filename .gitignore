@@ -1,0 +1,23 @@
+# Local configuration / secrets
+.env
+.env.*
+!config/example.env
+config/local.env
+
+# Runtime state and logs
+*.log
+state.env
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary / generated files
+*.tmp
+*.swp
+*.tgz
+*.tar.gz
+coverage/
+dist/
