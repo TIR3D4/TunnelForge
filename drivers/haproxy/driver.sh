@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 UNIT=tunnelforge-haproxy.service;CONF=/etc/tunnelforge/generated/haproxy.cfg
-driver_preflight(){ [[ $1 == foreign ]]||{ port_free "$SERVICE_PORT"||die "service port busy";port_free "$HEALTH_PORT"||die "health port busy";}; }
+driver_preflight(){ [[ $1 == foreign ]]||{ [[ $DESTINATION_HOST != 127.* && $DESTINATION_HOST != localhost ]]||die 'direct HAProxy destination must be reachable from Iran; use the Foreign public/private reachable address';port_free "$SERVICE_PORT"||die "service port busy";port_free "$HEALTH_PORT"||die "health port busy";}; }
 driver_install(){ [[ $1 == foreign ]]||{ apt-get update -qq;DEBIAN_FRONTEND=noninteractive apt-get install -y haproxy >/dev/null;}; }
 driver_configure(){ [[ $1 == foreign ]]&&{ health_echo_install;return;};mkdir -p /etc/tunnelforge/generated;cat >"$CONF" <<EOF
 global
@@ -15,7 +15,7 @@ frontend service
  bind 0.0.0.0:$SERVICE_PORT
  default_backend app
 backend app
- server foreign $FOREIGN_IP:$DESTINATION_PORT check
+ server foreign $DESTINATION_HOST:$DESTINATION_PORT check
 frontend health
  bind 127.0.0.1:$HEALTH_PORT
  default_backend health_remote

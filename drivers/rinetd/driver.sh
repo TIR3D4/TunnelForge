@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 UNIT=tunnelforge-rinetd.service;CONF=/etc/tunnelforge/generated/rinetd.conf
-driver_preflight(){ [[ $1 == foreign ]]||{ port_free "$SERVICE_PORT"||die 'service port busy';port_free "$HEALTH_PORT"||die 'health port busy';}; };driver_install(){ [[ $1 == foreign ]]||{ apt-get update -qq;DEBIAN_FRONTEND=noninteractive apt-get install -y rinetd >/dev/null;}; };driver_configure(){ [[ $1 == foreign ]]&&{ health_echo_install;return;};mkdir -p /etc/tunnelforge/generated;printf '0.0.0.0 %s %s %s\n127.0.0.1 %s %s %s\n' "$SERVICE_PORT" "$FOREIGN_IP" "$DESTINATION_PORT" "$HEALTH_PORT" "$FOREIGN_IP" "$HEALTH_PORT">"$CONF";cat >/etc/systemd/system/$UNIT <<EOF
+driver_preflight(){ [[ $1 == foreign ]]||{ [[ $DESTINATION_HOST != 127.* && $DESTINATION_HOST != localhost ]]||die 'direct rinetd destination must be reachable from Iran';port_free "$SERVICE_PORT"||die 'service port busy';port_free "$HEALTH_PORT"||die 'health port busy';}; };driver_install(){ [[ $1 == foreign ]]||{ apt-get update -qq;DEBIAN_FRONTEND=noninteractive apt-get install -y rinetd >/dev/null;}; };driver_configure(){ [[ $1 == foreign ]]&&{ health_echo_install;return;};mkdir -p /etc/tunnelforge/generated;printf '0.0.0.0 %s %s %s\n127.0.0.1 %s %s %s\n' "$SERVICE_PORT" "$DESTINATION_HOST" "$DESTINATION_PORT" "$HEALTH_PORT" "$FOREIGN_IP" "$HEALTH_PORT">"$CONF";cat >/etc/systemd/system/$UNIT <<EOF
 [Unit]
 After=network-online.target
 [Service]

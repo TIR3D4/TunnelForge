@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-health_h0(){ service_active "$1"; }; health_h1(){ ss -H -lnt|awk '{print $4}'|grep -Eq ":$1$"; }; health_h3(){ python3 "$TF_ROOT/health/probe.py" 127.0.0.1 "$HEALTH_PORT" --token-file "$TF_HEALTH_TOKEN_FILE"; }; health_h4(){ timeout 5 bash -c "exec 3<>/dev/tcp/127.0.0.1/$SERVICE_PORT" >/dev/null 2>&1; }
+health_h0(){ service_active "$1"; }; health_h1(){ ss -H -lnt|awk '{print $4}'|grep -Eq ":$1$"; }; health_h3(){ python3 "$TF_ROOT/health/probe.py" 127.0.0.1 "$HEALTH_PORT" --token-file "$TF_HEALTH_TOKEN_FILE"; }; health_destination(){ timeout 5 bash -c "exec 3<>/dev/tcp/$DESTINATION_HOST/$DESTINATION_PORT" >/dev/null 2>&1; }
 health_echo_install(){ need_root;load_config;[[ -s $TF_HEALTH_TOKEN_FILE ]]||die "missing shared health token";cat >/etc/systemd/system/tunnelforge-health-echo.service <<EOF
 [Unit]
 After=network-online.target
