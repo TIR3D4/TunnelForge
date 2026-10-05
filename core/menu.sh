@@ -60,15 +60,15 @@ ui_config_summary(){
 
 ui_driver_menu(){
   local choice
-  echo " Stable drivers"
-  echo "  1) GRE        — L3 tunnel"
-  echo "  2) HAProxy    — Direct TCP relay"
-  echo "  3) rinetd     — Lightweight TCP relay"
-  echo "  4) socat      — Simple TCP relay"
-  echo "  5) GOST       — TCP relay tunnel"
-  echo "  6) wstunnel   — WebSocket tunnel"
-  echo "  0) Back"
-  echo
+  echo " Stable drivers" >&2
+  echo "  1) GRE        — L3 tunnel" >&2
+  echo "  2) HAProxy    — Direct TCP relay" >&2
+  echo "  3) rinetd     — Lightweight TCP relay" >&2
+  echo "  4) socat      — Simple TCP relay" >&2
+  echo "  5) GOST       — TCP relay tunnel" >&2
+  echo "  6) wstunnel   — WebSocket tunnel" >&2
+  echo "  0) Back" >&2
+  echo >&2
   read -rp " Select driver [0-6]: " choice
   case "$choice" in
     1) printf 'gre';;
@@ -84,11 +84,11 @@ ui_driver_menu(){
 
 ui_role_menu(){
   local choice
-  echo " Server role"
-  echo "  1) Iran Server"
-  echo "  2) Foreign Server"
+  echo " Server role" >&2
+  echo "  1) Iran Server" >&2
+  echo "  2) Foreign Server" >&2
   echo "  0) Back"
-  echo
+  echo >&2
   read -rp " Select role [0-2]: " choice
   case "$choice" in
     1) printf 'iran';;
