@@ -1,0 +1,6 @@
+id="rinetd"
+name="Rinexor"
+category="direct-tcp"
+stability="stable"
+lab_user_verified=true
+requires_transport_port=false
