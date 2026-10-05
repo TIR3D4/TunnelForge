@@ -1,63 +1,20 @@
 # Architecture
 
-## Design goals
+```text
+Client -> Iran VPS:service_port -> selected driver -> Foreign VPS -> destination_host:destination_port -> Xray/TCP service
 
-TunnelForge keeps orchestration logic separate from transport-specific implementation. The core owns state, validation, logging and lifecycle sequencing; each driver owns only the commands necessary to install, configure, start, check and remove one transport.
-
-## Runtime layout
-
-| Path | Purpose |
-|---|---|
-| `/usr/local/bin/tunnelforge` | User-facing CLI |
-| `/opt/tunnelforge/core/` | Shared helpers and controller |
-| `/opt/tunnelforge/drivers/` | Driver implementations |
-| `/opt/tunnelforge/docs/` | Installed documentation snapshot |
-| `/etc/tunnelforge/config.env` | Node addresses and ports |
-| `/var/lib/tunnelforge/state.env` | Active deployment state |
-| `/var/lib/tunnelforge/history.log` | Lifecycle/verification audit trail |
-| `/var/log/tunnelforge/tunnelforge.log` | Runtime log |
-
-## Lifecycle
-
-`up` follows the same contract for every driver:
-
-1. Validate role and driver name.
-2. Load and validate global configuration.
-3. Source the selected driver.
-4. Run `driver_preflight`.
-5. Run `driver_install`.
-6. Run `driver_configure`.
-7. Run `driver_start`.
-8. Run `driver_health`.
-9. Persist active state only after the health step succeeds.
-
-`down` loads the active state and invokes `driver_cleanup` for the recorded driver and role.
-
-## Driver contract
-
-Every `drivers/<name>.sh` file must define:
-
-```bash
-driver_preflight() { ...; }
-driver_install() { ...; }
-driver_configure() { ...; }
-driver_start() { ...; }
-driver_health() { ...; }
-driver_cleanup() { ...; }
+H3: Iran health listener -> same driver/transport -> authenticated Foreign echo -> exact bytes returned
 ```
 
-Drivers may use helpers exported by `core/common.sh`, including `die`, `port_free`, `owned_stop`, and validated configuration variables.
+`service_port` and `destination_port` are separate concepts. The old prototype incorrectly assumed they were always the same and could report a false H3 merely because a local listener accepted a socket.
 
-## Ownership boundaries
+## Runtime paths
+`/etc/tunnelforge/config.toml`, `/etc/tunnelforge/secrets/`, `/var/lib/tunnelforge/state.json`, `/var/lib/tunnelforge/history.jsonl`, `/var/log/tunnelforge/`.
 
-TunnelForge should avoid altering unrelated services. Dedicated units use a `tunnelforge-*` name. The HAProxy and rinetd drivers use distribution-managed service names because they configure those packages directly; operators should not use those drivers on hosts where an existing HAProxy/rinetd configuration must be preserved.
+## Driver contract
+Each Stable driver provides `preflight`, `install`, `configure`, `start`, `stop`, `status`, `health`, `cleanup`, and `metrics` functions. Core loads the contract rather than containing a large transport switch.
 
-TunnelForge does not modify Xray configuration.
+## Transaction
+Load/validate -> clean previous TunnelForge-owned deployment -> preflight -> install -> configure -> start -> health -> commit state. Any failure before commit invokes driver cleanup and clears state.
 
-## Verification model
-
-Technical process/listener checks are not equivalent to application success. `USER_VERIFIED` therefore starts as `unknown` and can only be set by an explicit `tunnelforge verify yes|no` command after a real client test.
-
-## Current scope
-
-v0.1.x intentionally uses manual two-node orchestration. SSH orchestration, cross-node deployment transactions, automatic rollback, benchmarks, and deeper integration testing are future work.
+The v0.1 CLI remains modular Bash because privileged work is predominantly systemd/network/package operations. Boundaries are intentionally designed so command/config/state orchestration can later migrate to Go without rewriting all drivers.

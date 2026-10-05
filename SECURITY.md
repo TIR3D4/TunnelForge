@@ -1,15 +1,14 @@
-# Security policy
+# Security Policy
 
-## Supported versions
+TunnelForge performs privileged networking operations. Review changes as root-level infrastructure code.
 
-The latest release in the `0.1.x` line receives security fixes while the project remains in early development.
+## Rules
+- Never commit SSH keys, tokens, or production credentials.
+- TunnelForge does not install, edit, restart, or delete Xray.
+- No third-party installer scripts are used.
+- GOST and wstunnel assets are version-pinned and SHA256-verified.
+- Runtime secrets live under `/etc/tunnelforge/secrets/` with restrictive permissions.
+- Cleanup may touch only TunnelForge-owned resources.
+- No global firewall flushes or broad process kills are permitted.
 
-## Reporting a vulnerability
-
-Please do not publish exploit details in a public issue before maintainers have had a reasonable opportunity to assess the report. Use GitHub's private vulnerability reporting feature when it is enabled for this repository.
-
-## Operational security
-
-TunnelForge runs with root privileges and can open network listeners, install packages, create systemd services, and create GRE interfaces. Review scripts before deployment and use host/firewall controls appropriate to your environment.
-
-GOST and wstunnel binaries are pinned to explicit upstream release versions, but v0.1.0 does not yet verify downloaded release archives with a project-maintained checksum. Treat the upstream release source and HTTPS delivery path as part of the trust boundary. Checksum verification is planned for a future release.
+Use GitHub private vulnerability reporting when available. The authenticated H3 health port should be restricted to the Iran VPS with provider/cloud firewall rules when practical.
