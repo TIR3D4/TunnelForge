@@ -8,49 +8,58 @@ TunnelForge deploys, validates, benchmarks and cleans up tunnel/relay methods be
 Client -> Iran VPS : service_port -> Selected Tunnel -> Foreign VPS -> destination_host:destination_port -> Xray/TCP service
 ```
 
-`service_port` is the client-facing Iran port. `destination_host:destination_port` is the existing Foreign service. `transport_port` is internal to relay drivers. TunnelForge never manages Xray.
+## Interactive UI
+
+Run the command without arguments:
+
+```bash
+sudo tunnelforge
+```
+
+TunnelForge opens an interactive terminal dashboard with numbered choices for setup, Iran/Foreign role deployment, tunnel selection, status, H3/H4 tests, benchmark, history and cleanup. The normal CLI remains available for automation.
 
 ## Health model
+
 H0 Process -> H1 Listener -> H2 Transport -> **H3 authenticated byte path through the selected driver** -> H4 direct Foreign destination probe -> H5 explicit real-user verification.
 
-H4 is deliberately **not** inferred by connecting to the Iran listener; that was a false-positive failure mode in the original prototype. In Manual Mode run `tunnelforge app-test` on Foreign. Orchestrated Mode runs it automatically. H5 always remains explicit.
+H5 is never inferred automatically.
 
 ## Stable / Experimental
-Stable: `gre`, `haproxy`, `rinetd`, `socat`, `gost`, `wstunnel`. Experimental catalog: WireGuard, FRP, Chisel, Rathole, Backhaul TCPMUX. These statuses come from the supplied real lab history and are not universal claims about upstream projects.
 
-## Quick start
+Stable: `gre`, `haproxy`, `rinetd`, `socat`, `gost`, `wstunnel`.
+
+Experimental catalog: WireGuard, FRP, Chisel, Rathole, Backhaul TCPMUX.
+
+### GRE reference path
+
+GRE is aligned to the real path that passed the user's live client test:
+
+```text
+Client
+ -> Iran :2020 (socat)
+ -> GRE 10.202.0.1/30 <-> 10.202.0.2/30
+ -> Foreign 10.202.0.2:2020 (socat)
+ -> 127.0.0.1:2020
+ -> existing destination service
+```
+
+A destination already bound to `127.0.0.1:2020` is valid and no longer incorrectly blocks GRE deployment on `10.202.0.2:2020`.
+
+## Install
+
 ```bash
 git clone https://github.com/TIR3D4/TunnelForge.git
 cd TunnelForge
 sudo bash install.sh
-sudo tunnelforge init
-sudo tunnelforge commands wstunnel
-```
-Run the generated Foreign Command first, then Iran Command. The commands embed a shared H3 token; treat them as sensitive.
-
-On Iran:
-```bash
-tunnelforge status
-sudo tunnelforge test
-```
-On Foreign:
-```bash
-sudo tunnelforge app-test
-```
-After the real client/Xray config works:
-```bash
-sudo tunnelforge verify yes
+sudo tunnelforge
 ```
 
-## Orchestrated SSH mode
-Configure SSH fields in `/etc/tunnelforge/config.toml` and install TunnelForge on both VPSs, then:
-```bash
-sudo tunnelforge orchestrate wstunnel
-```
-Foreign is deployed first, Iran second; H3 and Foreign H4 are checked; failure cleans both sides. `auto` is available only for orchestrated mode.
+For Manual Mode, configure once and use **Generate Manual Commands** from the menu. Run the generated Foreign command first and Iran command second.
 
-## Commands
+## CLI
+
 ```text
+tunnelforge
 tunnelforge init
 tunnelforge drivers
 tunnelforge commands DRIVER
@@ -67,7 +76,8 @@ tunnelforge history
 tunnelforge down
 ```
 
-## Benchmark / security
-L1=1, L2=50, L3=250, L4=1000 authenticated echo connections. L3+ requires `--yes`; L2+ requires H5=yes. GOST and wstunnel official release assets are version-pinned and SHA256-verified. No unknown installer scripts, broad `pkill`, firewall flush, or Xray modification are used.
+## Security
+
+TunnelForge does not modify Xray, globally flush firewalls, broadly kill processes, or remove unrelated services. GOST/wstunnel binaries are version-pinned and SHA256-verified. Runtime secrets stay outside Git.
 
 See `docs/ARCHITECTURE.md`, `docs/HEALTH_MODEL.md`, `docs/LAB_HISTORY.md`, `SECURITY.md`, and `docs/ROADMAP.md`.

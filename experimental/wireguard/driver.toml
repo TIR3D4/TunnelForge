@@ -1,6 +1,0 @@
-id="wireguard"
-name="WireGuard"
-stability="experimental"
-lab_user_verified=false
-last_lab_result="failed_udp_return"
-enabled=false

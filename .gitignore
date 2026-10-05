@@ -1,9 +1,0 @@
-.env
-*.log
-*.tmp
-*.swp
-.DS_Store
-.idea/
-.vscode/
-dist/
-release/

@@ -1,7 +1,0 @@
-id="wstunnel"
-name="Westral"
-category="websocket-tcp"
-stability="stable"
-lab_user_verified=true
-requires_transport_port=true
-upstream_version="11.0.0"
